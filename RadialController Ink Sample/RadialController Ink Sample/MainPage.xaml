@@ -1,0 +1,57 @@
+﻿<Page
+    x:Class="RadialController_Ink_Sample.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:RadialController_Ink_Sample"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid x:Name="Container" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid x:Name="CanvasGrid">
+            <InkCanvas x:Name="myCanvas"/>
+            <InkToolbar x:Name="myToolbar" 
+                        VerticalAlignment="Top" 
+                        TargetInkCanvas="{x:Bind myCanvas}" />
+        </Grid>
+        <StackPanel x:Name="ToolPanel" 
+                    HorizontalAlignment="Right" 
+                    VerticalAlignment="Top" 
+                    Orientation="Vertical" 
+                    Width="300" 
+                    Background="White" 
+                    BorderBrush="Black" 
+                    BorderThickness="2">
+            <StackPanel>
+                <TextBlock Text="Red" Margin="20,5,20,5"/>
+                <Slider x:Name="RValue" 
+                        LargeChange="1" 
+                        Maximum="255" 
+                        Margin="20,5,20,5"
+                        Value="255"/>
+            </StackPanel>
+            <StackPanel>
+                <TextBlock Text="Green" Margin="20,5,20,5"/>
+                <Slider x:Name="GValue" 
+                        LargeChange="1" 
+                        Maximum="255" 
+                        Margin="20,5,20,5"
+                        Value="255"/>
+            </StackPanel>
+            <StackPanel>
+                <TextBlock Text="Blue" Margin="20,5,20,5"/>
+                <Slider x:Name="BValue" 
+                        LargeChange="1" 
+                        Maximum="255" 
+                        Margin="20,5,20,5"
+                        Value="255"/>
+            </StackPanel>
+            <StackPanel>
+                <TextBlock Text="Apply New Background" Margin="20,5,20,5"/>
+                <Grid x:Name="Preview" 
+                      Height="100" Width="250" 
+                      Margin="0,20,0,20"/>
+            </StackPanel>
+        </StackPanel>
+    </Grid>
+</Page>
