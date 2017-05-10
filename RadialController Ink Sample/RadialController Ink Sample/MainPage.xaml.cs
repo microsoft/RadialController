@@ -14,6 +14,7 @@ using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 using Windows.UI.Input;
 using Windows.Storage.Streams;
+using Windows.Devices.Haptics;
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
@@ -30,6 +31,8 @@ namespace RadialController_Ink_Sample
             this.InitializeComponent();
             UpdatePreview();
             highlightedItem = RValue;
+            myCanvas.InkPresenter.InputDeviceTypes = Windows.UI.Core.CoreInputDeviceTypes.Pen | Windows.UI.Core.CoreInputDeviceTypes.Touch;
+
             RValue.ValueChanged += Slider_ValueChanged;
             GValue.ValueChanged += Slider_ValueChanged;
             BValue.ValueChanged += Slider_ValueChanged;
@@ -41,8 +44,13 @@ namespace RadialController_Ink_Sample
             myController = RadialController.CreateForCurrentView();
 
             // Create a menu item for the custom tool.
+
+            //RadialControllerMenuItem myItem =
+            //  RadialControllerMenuItem.CreateFromKnownIcon("Background", RadialControllerMenuKnownIcon.InkColor);
+
             RadialControllerMenuItem myItem =
-              RadialControllerMenuItem.CreateFromKnownIcon("Background", RadialControllerMenuKnownIcon.InkColor);
+                RadialControllerMenuItem.CreateFromFontGlyph("Background", "\xE7B5", "Segoe MDL2 Assets");
+
 
             //Add the custom tool's menu item to the menu
             myController.Menu.Items.Add(myItem);
@@ -53,6 +61,9 @@ namespace RadialController_Ink_Sample
             //Create handlers for button and rotational input
             myController.RotationChanged += MyController_RotationChanged;
             myController.ButtonClicked += MyController_ButtonClicked;
+
+            myController.ButtonPressed += MyController_ButtonPressed;
+            myController.ButtonReleased += MyController_ButtonReleased;
 
             //Remove Scroll/Zoom/Undo tools as app doesn't support them
             RadialControllerConfiguration config = RadialControllerConfiguration.GetForCurrentView();
@@ -71,6 +82,7 @@ namespace RadialController_Ink_Sample
             myController.ControlAcquired += MyController_ControlAcquired;
             myController.ControlLost += MyController_ControlLost;
         }
+
         #endregion
 
         #region Handling RadialController Input
@@ -89,6 +101,7 @@ namespace RadialController_Ink_Sample
             {
                 //Click on the Preview, update the background
                 UpdateBackground();
+                oldResolution = 15;
             }
 
             else if (selectedItem != null)
@@ -97,7 +110,8 @@ namespace RadialController_Ink_Sample
                 selectedItem = null;
                 UpdateHighlight(highlightedItem);
                 //decrease sensitivity to make it more comfortable to navigate between items
-                myController.RotationResolutionInDegrees = 10;
+                myController.RotationResolutionInDegrees = 15;
+                myController.UseAutomaticHapticFeedback = true;
             }
 
             else if (selectedItem == null)
@@ -106,19 +120,45 @@ namespace RadialController_Ink_Sample
                 UpdateSelection(highlightedItem as Slider);
                 //increase sensitivity to make it easier to change slider value
                 myController.RotationResolutionInDegrees = 1;
+                myController.UseAutomaticHapticFeedback = false;
             }
         }
 
+        double oldResolution = 10;
+
+        private void MyController_ButtonPressed(RadialController sender, RadialControllerButtonPressedEventArgs args)
+        {
+            oldResolution = myController.RotationResolutionInDegrees;
+            myController.RotationResolutionInDegrees = 15;
+        }
+
+        private void MyController_ButtonReleased(RadialController sender, RadialControllerButtonReleasedEventArgs args)
+        {
+            myController.RotationResolutionInDegrees = oldResolution;
+        }
+
+
         private void MyController_RotationChanged(RadialController sender, RadialControllerRotationChangedEventArgs args)
         {
-            if (selectedItem != null)
+            //If an item is already selected, manipulate the slider unless the user is performing a press-and-rotate
+            //if (selectedItem != null)
+            if (selectedItem != null && args.IsButtonPressed == false)
             {
                 //Change the value on the slider
                 selectedItem.Value += args.RotationDeltaInDegrees;
+
+                //If the new value is a multiple of 16, fire haptics
+
+                if (selectedItem.Value % 16 == 0 || selectedItem.Value == 255)
+                {
+                    SendHapticFeedback(args.SimpleHapticsController);
+                }
+
             }
             else if (args.RotationDeltaInDegrees > 0)
             {
                 //Rotation is to the right, change the highlighted item accordingly
+                selectedItem = null;
                 if (highlightedItem == RValue)
                 {
                     UpdateHighlight(GValue);
@@ -134,6 +174,7 @@ namespace RadialController_Ink_Sample
             }
             else if (args.RotationDeltaInDegrees < 0)
             {
+                selectedItem = null;
                 //Rotation is to the left, change the highlighted item accordingly
                 if (highlightedItem == GValue)
                 {
@@ -146,6 +187,20 @@ namespace RadialController_Ink_Sample
                 else if (highlightedItem == Preview)
                 {
                     UpdateHighlight(BValue);
+                }
+            }
+        }
+
+        private void SendHapticFeedback(SimpleHapticsController hapticController)
+        {
+            var feedbacks = hapticController.SupportedFeedback;
+
+            foreach (SimpleHapticsControllerFeedback feedback in feedbacks)
+            {
+                if (feedback.Waveform == KnownSimpleHapticsControllerWaveforms.Click)
+                {
+                    hapticController.SendHapticFeedback(feedback);
+                    return;
                 }
             }
         }
@@ -181,6 +236,11 @@ namespace RadialController_Ink_Sample
 
         private void Slider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
         {
+            //Update all visuals
+            RText.Text = "R: " + (int)RValue.Value;
+            GText.Text = "G: " + (int)GValue.Value;
+            BText.Text = "B: " + (int)BValue.Value;
+
             UpdatePreview();
         }
 

@@ -22,32 +22,42 @@
                     Background="White" 
                     BorderBrush="Black" 
                     BorderThickness="2">
-            <StackPanel>
-                <TextBlock Text="Red" Margin="20,5,20,5"/>
+            <StackPanel BorderBrush="Black" 
+                        BorderThickness="2">
+                <TextBlock x:Name="RText" 
+                           Text="R: 255" 
+                           Margin="20,5,20,5"/>
                 <Slider x:Name="RValue" 
-                        LargeChange="1" 
+                        LargeChange="1"
+                        Minimum="0"
                         Maximum="255" 
                         Margin="20,5,20,5"
                         Value="255"/>
             </StackPanel>
             <StackPanel>
-                <TextBlock Text="Green" Margin="20,5,20,5"/>
+                <TextBlock x:Name="GText"
+                           Text="G: 255" 
+                           Margin="20,5,20,5"/>
                 <Slider x:Name="GValue" 
-                        LargeChange="1" 
+                        LargeChange="1"
+                        Minimum="0"
                         Maximum="255" 
                         Margin="20,5,20,5"
                         Value="255"/>
             </StackPanel>
             <StackPanel>
-                <TextBlock Text="Blue" Margin="20,5,20,5"/>
+                <TextBlock x:Name="BText" 
+                           Text="B: 255" 
+                           Margin="20,5,20,5"/>
                 <Slider x:Name="BValue" 
-                        LargeChange="1" 
+                        LargeChange="1"
+                        Minimum="0"
                         Maximum="255" 
                         Margin="20,5,20,5"
                         Value="255"/>
             </StackPanel>
             <StackPanel>
-                <TextBlock Text="Apply New Background" Margin="20,5,20,5"/>
+                <TextBlock Text="Preview - Click To Apply" Margin="20,5,20,5"/>
                 <Grid x:Name="Preview" 
                       Height="100" Width="250" 
                       Margin="0,20,0,20"/>
