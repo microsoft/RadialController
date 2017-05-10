@@ -11,6 +11,6 @@
         <MediaElement x:Name="myPlayer"
             Source="Media/WindowsInk.mp4" 
             AutoPlay="false" 
-            AreTransportControlsEnabled="True" />
+            AreTransportControlsEnabled="True"/>
     </Grid>
 </Page>

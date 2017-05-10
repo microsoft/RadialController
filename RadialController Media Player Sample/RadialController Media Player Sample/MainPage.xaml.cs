@@ -28,20 +28,23 @@ namespace RadialController_Media_Player_Sample
         RadialControllerConfiguration config;
         RadialControllerMenuItem volumeItem;
         RadialControllerMenuItem playbackItem;
+        
+        //Enumeration to track current mode of Radial controller interaction
         enum Mode { Volume, Playback };
         Mode currentMode;
+
         bool doNotProcessClick = false;
 
         public MainPage()
         {
             this.InitializeComponent();
 
-            // Create a reference to the RadialController.
+            //Create a reference to the RadialController.
             myController = RadialController.CreateForCurrentView();
             myController.RotationResolutionInDegrees = 5;
             myController.UseAutomaticHapticFeedback = false;
 
-            // Create menu items for the custom tool.
+            //Create menu items for the custom tool.
             volumeItem = RadialControllerMenuItem.CreateFromFontGlyph("Volume", "\xE767", "Segoe MDL2 Assets");
             playbackItem = RadialControllerMenuItem.CreateFromFontGlyph("Playback", "\xE714", "Segoe MDL2 Assets");
 
@@ -61,14 +64,12 @@ namespace RadialController_Media_Player_Sample
             config.SetDefaultMenuItems(new RadialControllerSystemMenuItemKind[] { });
 
             //Set up menu suppression targets
-
             config.ActiveControllerWhenMenuIsSuppressed = myController;
             myController.ButtonHolding += MyController_ButtonHolding;
 
             myPlayer.CurrentStateChanged += MyPlayer_CurrentStateChanged;
 
-
-            //select the first tool
+            //Select the first tool
             myPlayer.Loaded += MyPlayer_Loaded;
         }
 
@@ -89,12 +90,14 @@ namespace RadialController_Media_Player_Sample
 
         private void MyController_ButtonClicked(RadialController sender, RadialControllerButtonClickedEventArgs args)
         {
+            //if the last interaction was a press-and-hold, do not do anything when the click event is fired
             if (doNotProcessClick)
             {
                 doNotProcessClick = false;
                 return;
             }
 
+            //In Playback mode, toggle between play and pause
             if (currentMode == Mode.Playback)
             {
                 if (myPlayer.CurrentState == MediaElementState.Playing)
@@ -106,7 +109,8 @@ namespace RadialController_Media_Player_Sample
                     myPlayer.Play();
                 }
             }
-            else if(currentMode == Mode.Volume)
+            //In Volume mode, toggle between muted and unmuted
+            else if (currentMode == Mode.Volume)
             {
                 myPlayer.IsMuted = !myPlayer.IsMuted;
             }
@@ -115,6 +119,7 @@ namespace RadialController_Media_Player_Sample
 
         private void MyPlayer_CurrentStateChanged(object sender, RoutedEventArgs e)
         {
+            //Only suppressing the menu when the media is playing
             if (myPlayer.CurrentState == MediaElementState.Playing)
             {
                 config.IsMenuSuppressed = true;
@@ -127,6 +132,7 @@ namespace RadialController_Media_Player_Sample
 
         private void MyController_ButtonHolding(RadialController sender, RadialControllerButtonHoldingEventArgs args)
         {
+            //When the menu is suppressed, switch tools on press-and-hold
             if (currentMode == Mode.Playback)
             {
                 myController.Menu.SelectMenuItem(volumeItem);
@@ -135,17 +141,19 @@ namespace RadialController_Media_Player_Sample
             {
                 myController.Menu.SelectMenuItem(playbackItem);
             }
-
+            //Buzz to let the user know the tool switch occured
             SendBuzzFeedback(args.SimpleHapticsController);
             doNotProcessClick = true;
         }
 
         private void MyController_RotationChanged(RadialController sender, RadialControllerRotationChangedEventArgs args)
         {
+            //In Playback mode, scrub through the video
             if (myController.Menu.GetSelectedMenuItem().Equals(playbackItem))
             {
                 myPlayer.Position = myPlayer.Position + TimeSpan.FromSeconds(args.RotationDeltaInDegrees);
             }
+            //In Volume mode, change the players volume
             else
             {
                 myPlayer.Volume += args.RotationDeltaInDegrees / 100;
@@ -160,6 +168,7 @@ namespace RadialController_Media_Player_Sample
             {
                 if (feedback.Waveform == KnownSimpleHapticsControllerWaveforms.Click)
                 {
+                    //Click the RadialController 3 times, with a duration of 250ms between each click
                     hapticController.SendHapticFeedbackForPlayCount(feedback, 1, 3, TimeSpan.FromMilliseconds(250));
                     return;
                 }
